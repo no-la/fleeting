@@ -1,3 +1,5 @@
+import { emojiAsset } from "./emoji-art.mjs";
+
 const PAGE_SIZE = 90;
 const RECENTS_KEY = "fleeting-recent-emojis";
 const SUGGESTED = ["🔥", "💯", "❤️", "💔", "😍", "😂", "🤫", "🤯", "🙄", "🤔", "🥺", "😭", "✨", "🎉", "👍"];
@@ -102,6 +104,16 @@ export async function openEmojiPicker({ dialog, onSelect }) {
     button.type = "button";
     button.className = "emoji-choice";
     button.textContent = entry.emoji;
+    const url = emojiAsset(entry.emoji);
+    if (url) {
+      const image = document.createElement("img");
+      image.src = url;
+      image.alt = "";
+      image.draggable = false;
+      image.loading = "lazy";
+      image.onerror = () => { button.textContent = entry.emoji; };
+      button.replaceChildren(image);
+    }
     button.setAttribute("aria-label", entry.name);
     button.title = entry.name;
     button.dataset.emoji = entry.emoji;

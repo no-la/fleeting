@@ -1,4 +1,5 @@
 "use strict";
+import { emojiAsset, emojiImage, prepareEmoji } from "./emoji-art.mjs";
 
 const $ = selector => document.querySelector(selector);
 const canvas = $("#canvas"), ctx = canvas.getContext("2d");
@@ -110,7 +111,22 @@ function renderLayer(layer) {
       ctx.fill();
     }
     ctx.fillStyle = layer.highlight ? contrast(layer.color) : layer.color;
-    ctx.fillText(line, x, y);
+    const runs = [];
+    for (const { segment } of graphemes.segment(line)) {
+      if (emojiAsset(segment)) runs.push({ text: segment, emoji: true });
+      else if (runs.length && !runs.at(-1).emoji) runs.at(-1).text += segment;
+      else runs.push({ text: segment, emoji: false });
+    }
+    const runWidth = runs.reduce((sum, run) => sum + ctx.measureText(run.text).width, 0);
+    let left = layer.align === "left" ? x : layer.align === "right" ? x - runWidth : x - runWidth / 2;
+    ctx.textAlign = "left";
+    for (const run of runs) {
+      const advance = ctx.measureText(run.text).width;
+      const image = run.emoji && emojiImage(run.text, () => draw());
+      if (image) ctx.drawImage(image, left + (advance - box.size) / 2, y - box.size / 2, box.size, box.size);
+      else ctx.fillText(run.text, left, y);
+      left += advance;
+    }
   });
   ctx.restore();
 }
@@ -287,7 +303,7 @@ $("#adjust").onclick = () => {
 };
 $("#stickers").onclick = async () => {
   try {
-    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=3");
+    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=4");
     await openEmojiPicker({ dialog: $("#sheet"), onSelect: emoji => {
         checkpoint();
         const layer = createLayer(emoji);
@@ -305,7 +321,8 @@ $("#help").onclick = () => showSheet("使い方", `
   <ul><li>画面をタップして文字を入力。「Aa」でも追加できます。</li><li>文字や絵文字はドラッグで移動、タップで編集。</li><li>2本指で大きさや角度を調整。</li><li>消したいものは下のゴミ箱へ。上の矢印で元に戻せます。</li></ul>
   <p>パソコンでは矢印キーでも移動できます。大きさと角度は調整ボタンから。</p>
   <p>保存形式はPNG（1080 × 1920）。下書きはこのブラウザに保存されます。</p>
-  <p>Twitterのフリートを参考に作りました。X / Twitterとは関係のない個人制作です。</p>`);
+  <p>Twitterのフリートを参考に作りました。X / Twitterとは関係のない個人制作です。</p>
+  <p>絵文字：<a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a>（Twitterほか、<a href="assets/twemoji/LICENSE" target="_blank" rel="noopener">CC BY 4.0</a>）。素材は未改変です。</p>`);
 
 function loadImage(source) {
   return new Promise((resolve, reject) => {
@@ -470,15 +487,17 @@ $("#undo").onclick = async () => {
 let exportFile = null, exportUrl = null, exportRequest = 0;
 function manualSaveHint() {
   return matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
-    ? "画像を長押しして保存できます。"
-    : "画像を右クリックして保存できます。";
+    ? "画像を長押しして保存"
+    : "画像を右クリックして保存";
 }
-$("#export").onclick = () => {
+$("#export").onclick = async () => {
   const request = ++exportRequest;
-  draw(true);
-  $("#save-message").textContent = "画像を準備しています…";
+  $("#save-message").textContent = "準備中…";
   $("#save-preview").hidden = $("#share-image").hidden = $("#download-image").hidden = true;
   $("#save-dialog").showModal();
+  await prepareEmoji(state.layers.map(layer => layer.text).join("\n"));
+  if (!$("#save-dialog").open || request !== exportRequest) return;
+  draw(true);
   canvas.toBlob(blob => {
     if (!$("#save-dialog").open || request !== exportRequest) return;
     if (!blob) { $("#save-message").textContent = "画像を作れませんでした。もう一度お試しください。"; return; }
@@ -490,7 +509,7 @@ $("#export").onclick = () => {
     try { canShare = Boolean(navigator.share && navigator.canShare?.({ files: [exportFile] })); } catch {}
     $("#share-image").hidden = !canShare;
     $("#save-message").textContent = canShare
-      ? "「保存・共有」から共有メニューを開けます。iPhoneでは「画像を保存」を選んでください。"
+      ? "共有メニューから「画像を保存」"
       : manualSaveHint();
   }, "image/png");
 };
@@ -515,6 +534,16 @@ $("#download-image").onclick = () => {
   anchor.click();
 };
 $("#close-save").onclick = () => $("#save-dialog").close();
+let saveBackdropDown = false;
+function outsideSave(event) {
+  const rect = $("#save-dialog").getBoundingClientRect();
+  return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+}
+$("#save-dialog").addEventListener("pointerdown", event => { saveBackdropDown = outsideSave(event); });
+$("#save-dialog").addEventListener("click", event => {
+  if (saveBackdropDown && outsideSave(event)) $("#save-dialog").close();
+  saveBackdropDown = false;
+});
 $("#save-dialog").addEventListener("close", () => {
   exportRequest++;
   $("#save-preview").removeAttribute("src");
