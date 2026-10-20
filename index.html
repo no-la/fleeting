@@ -7,7 +7,7 @@
   <meta name="description" content="フリートの編集体験を、もう一度。文字や写真を自由に配置して、一枚の画像に。">
   <title>fleeting — フリートエディタ</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231da1f2'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-family='sans-serif' font-size='46' font-weight='bold' fill='white'%3Ef%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <main id="app" aria-label="フリートエディタ">
@@ -17,8 +17,8 @@
       <button id="reset" class="round" aria-label="新しく作る"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
       <div class="header-right"><button id="undo" class="round" aria-label="元に戻す" disabled><svg viewBox="0 0 24 24"><path d="M8 5 3 10l5 5M3 10h11a7 7 0 0 1 0 14" transform="translate(0 -3)"/></svg></button><button id="export" class="pill" disabled>保存</button></div>
     </header>
-    <button id="placeholder">いまだけ伝えたいことは？</button>
-    <div id="text-editor" hidden><textarea id="words" aria-label="テキストを入力" maxlength="1000" spellcheck="false" placeholder="いまだけ伝えたいことは？"></textarea></div>
+    <button id="placeholder" hidden>いまだけ伝えたいことは？</button>
+    <div id="text-editor" hidden><textarea id="words" aria-label="テキストを入力" maxlength="1000" spellcheck="false" placeholder="テキストを入力"></textarea></div>
     <span id="gesture-hint" hidden>ドラッグで移動 · 2本指でサイズと角度</span>
   </section>
   <div id="controls">
@@ -47,5 +47,5 @@
 </main>
 <dialog id="sheet"><div class="sheet-heading"><h2 id="sheet-title"></h2><button id="close-sheet" class="icon" aria-label="閉じる">×</button></div><div id="sheet-content"></div></dialog>
 <dialog id="reset-dialog"><h2>新しく作りますか？</h2><p>いまの下書きは消えます。残したい場合は、先に画像を保存してください。</p><div class="dialog-actions"><button id="cancel-reset">戻る</button><button id="confirm-reset" class="pill">新しく作る</button></div></dialog>
-<script src="app.js?v=3" defer></script>
+<script src="app.js?v=4" defer></script>
 </body></html>

@@ -63,20 +63,27 @@ dialog a { color: #1da1f2; }
 .sheet-row input[type=range] { width: 58%; accent-color: #1da1f2; }
 .sheet-row input[type=color] { width: 44px; height: 36px; padding: 0; border: 0; background: none; }
 .sheet-button { border: 1px solid #536471; border-radius: 20px; min-height: 40px; padding: 8px 14px; font-size: 13px; }
-.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
-.emoji-grid button { font-size: 30px; min-height: 48px; padding: 2px; border-radius: 8px; }
-.emoji-grid button:hover, .emoji-grid button:focus-visible { background: #ffffff18; }
+.emoji-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; padding: 10px 0 20px; }
+.emoji-tile { position: relative; min-width: 0; }
+.emoji-choice { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 52px; height: 100px; width: 100%; padding: 0; border-radius: 12px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.emoji-choice:active, .emoji-choice:focus-visible { background: #ffffff18; }
+.emoji-variants { position: absolute; bottom: 3px; right: 2px; width: 44px; height: 44px; font-size: 10px; color: #666; padding: 21px 7px 3px 21px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-dialog.emoji-sheet { max-height: calc(var(--viewport-height, 100dvh) - 24px); overflow: hidden; }
-.emoji-sheet .sheet-heading { margin-bottom: 10px; }
-.emoji-sheet #sheet-content { display: flex; flex-direction: column; min-height: 0; }
-#emoji-search { width: 100%; border: 1px solid #536471; color: #fff; background: #0d161e; border-radius: 12px; padding: 11px 12px; font-size: 16px; min-height: 44px; }
-.emoji-filters { display: flex; gap: 8px; margin-top: 10px; }
-.emoji-filters select { flex: 1; min-width: 0; width: 50%; border: 1px solid #536471; background: #15202b; color: white; border-radius: 8px; padding: 8px 4px; min-height: 44px; font: inherit; font-size: 12px; }
-#emoji-count { font-size: 12px; margin: 10px 0; color: #aab8c2; }
-#emoji-results { height: min(390px, max(70px, calc(var(--viewport-height, 100dvh) - 310px))); overflow-y: auto; overscroll-behavior: contain; }
-#emoji-more { display: block; width: 100%; margin: 12px 0; }
-.emoji-note { font-size: 10px; line-height: 1.5; color: #8899a6; margin: 12px 0 0; }
+dialog.emoji-sheet { position: fixed; inset: 0; margin: 0 auto; width: min(100%, 480px); max-width: 100%; height: var(--viewport-height, 100dvh); max-height: var(--viewport-height, 100dvh); overflow: hidden; padding: max(8px, env(safe-area-inset-top)) 12px max(8px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: #000; }
+dialog.emoji-sheet[open] { display: flex; flex-direction: column; }
+.emoji-sheet .sheet-heading { display: none; }
+.emoji-sheet #sheet-content { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.emoji-searchbar { display: flex; gap: 8px; align-items: center; flex-shrink: 0; min-height: 48px; }
+#emoji-search { flex: 1; min-width: 0; border: 0; color: #fff; background: #333; border-radius: 20px; padding: 9px 13px; font-size: 16px; min-height: 38px; }
+#emoji-search::placeholder { color: #aaa; }
+#emoji-cancel { font-size: 14px; min-height: 44px; padding: 0 4px; white-space: nowrap; }
+#emoji-back { width: 44px; height: 44px; font-size: 34px; flex-shrink: 0; }
+#emoji-variant-title { flex: 1; font-size: 14px; }
+#emoji-results { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#emoji-results::-webkit-scrollbar { display: none; }
+#emoji-sentinel { height: 1px; }
+#emoji-empty { text-align: center; padding: 28px 18px; font-size: 14px; }
+.emoji-note { flex-shrink: 0; font-size: 10px; line-height: 1.5; color: #777; text-align: center; margin: 6px 0 0; }
 .dialog-actions { display: flex; gap: 20px; justify-content: flex-end; margin-top: 20px; }
 @media (min-width: 600px) { #app { --pad-top: 20px; --pad-bottom: 16px; } }
 @media (max-height: 420px) { #app { --pad-top: 0px; --pad-bottom: 0px; } #text-editor { inset: 8px 18px; } }

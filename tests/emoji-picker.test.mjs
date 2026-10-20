@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { prepareCatalog, filterEmojis } from "../emoji-picker.mjs";
+import { prepareCatalog, filterEmojis, groupEmojis } from "../emoji-picker.mjs";
 
 const catalog = prepareCatalog(JSON.parse(await readFile(new URL("../data/emoji.json", import.meta.url), "utf8")));
 
@@ -35,4 +35,23 @@ test("category and tone filters retain mixed tone combinations", () => {
 
 test("unknown queries produce an empty result, not a fallback subset", () => {
   assert.deepEqual(filterEmojis(catalog.emojis, { query: "nonexistent-emoji-12345" }), []);
+});
+
+test("grouping skin tones keeps every Unicode sequence reachable", () => {
+  const groups = groupEmojis(catalog.emojis);
+  const sequences = groups.flatMap(group => group.variants.map(entry => entry.emoji));
+  assert.equal(sequences.length, catalog.count);
+  assert.equal(new Set(sequences).size, catalog.count);
+  const thumbs = groups.find(group => group.entry.emoji === "👍");
+  assert.equal(thumbs.variants.length, 6);
+  assert.ok(thumbs.variants.some(entry => entry.emoji === "👍🏿"));
+  const mixed = groups.find(group => group.variants.some(entry => entry.emoji === "🫱🏽‍🫲🏻"));
+  assert.ok(mixed);
+  assert.ok(mixed.variants.length > 6);
+});
+
+test("an exact skin-tone query preserves that sequence as the tap target", () => {
+  const groups = groupEmojis(filterEmojis(catalog.emojis, { query: "👩🏽‍💻" }));
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].entry.emoji, "👩🏽‍💻");
 });

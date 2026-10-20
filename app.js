@@ -17,7 +17,7 @@ const backgrounds = [
   ["ブラック", "#000000", "#000000", "#000000"],
 ];
 const colors = ["#ffffff", "#000000", "#1da1f2", "#ffd400", "#f45d22", "#e0245e", "#794bc4", "#17bf63", "#ffadce", "#aab8c2"];
-const freshState = () => ({ background: 0, custom: "#15232d", photo: null, fit: "contain", layers: [] });
+const freshState = () => ({ background: 0, custom: "#15232d", photo: null, fit: "contain", layers: [], hasStarted: false });
 let state = freshState();
 let selected = null, edit = null, photo = null, photoSource = null;
 let history = [], saveTimer, statusTimer, drag = null;
@@ -124,7 +124,7 @@ function draw(exporting = false) {
 }
 function refresh() {
   draw();
-  $("#placeholder").hidden = Boolean(state.layers.length || photo || edit);
+  $("#placeholder").hidden = Boolean(state.hasStarted || state.layers.length || state.photo || edit);
   $("#export").disabled = !(state.layers.length || photo);
   $("#undo").disabled = history.length === 0;
   $("#adjust").disabled = !currentLayer();
@@ -134,10 +134,16 @@ function refresh() {
   const palette = backgrounds[state.background];
   $(".background-dot").style.background = palette ? `linear-gradient(135deg,${palette[1]},${palette[3]})` : state.custom;
 }
-function changed() { refresh(); save(); }
+function changed() {
+  state.hasStarted = true;
+  refresh();
+  save();
+}
 
 function openEditor(layer) {
   if (edit) return;
+  state.hasStarted = true;
+  save();
   selected = layer?.id || null;
   edit = layer ? { ...layer } : createLayer();
   $("#words").value = edit.text;
@@ -281,7 +287,7 @@ $("#adjust").onclick = () => {
 };
 $("#stickers").onclick = async () => {
   try {
-    const { openEmojiPicker } = await import("./emoji-picker.mjs");
+    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=2");
     await openEmojiPicker({ dialog: $("#sheet"), onSelect: emoji => {
         checkpoint();
         const layer = createLayer(emoji);
@@ -480,7 +486,8 @@ $("#confirm-reset").onclick = () => {
   selected = null;
   photo = null;
   photoSource = null;
-  changed();
+  refresh();
+  save();
   $("#reset-dialog").close();
 };
 function fitViewport() {
@@ -494,10 +501,16 @@ window.addEventListener("pagehide", store);
 // Keep the first version's drafts available after the UI upgrade.
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE));
-  if (saved && Array.isArray(saved.layers)) state = saved;
+  if (saved && Array.isArray(saved.layers)) {
+    state = {
+      ...saved,
+      hasStarted: saved.hasStarted ?? Boolean(saved.layers.length || saved.photo || saved.background !== 0),
+    };
+  }
   else {
     const legacy = JSON.parse(localStorage.getItem("fleeting-v1"));
     if (legacy && typeof legacy.text === "string") {
+      state.hasStarted = true;
       state.background = -1;
       state.custom = legacy.custom || "#15232d";
       state.photo = legacy.photo || null;
