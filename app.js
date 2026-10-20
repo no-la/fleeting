@@ -3,6 +3,8 @@
 const $ = selector => document.querySelector(selector);
 const canvas = $("#canvas"), ctx = canvas.getContext("2d");
 const WIDTH = 1080, HEIGHT = 1920, STORAGE = "fleeting-v2";
+const MIN_LAYER_SIZE = 24, MAX_LAYER_SIZE = 1920;
+const graphemes = new Intl.Segmenter("ja", { granularity: "grapheme" });
 const FONT = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Kaku Gothic ProN", sans-serif';
 const backgrounds = [
   ["ミッドナイト", "#405561", "#0b141c", "#223c44"],
@@ -49,7 +51,7 @@ function splitLines(text, maxWidth) {
   const lines = [];
   for (const paragraph of text.split("\n")) {
     let line = "";
-    for (const character of Array.from(paragraph)) {
+    for (const { segment: character } of graphemes.segment(paragraph)) {
       if (line && ctx.measureText(line + character).width > maxWidth) {
         lines.push(line);
         line = character;
@@ -264,7 +266,7 @@ $("#adjust").onclick = () => {
   if (!layer) return;
   checkpoint();
   showSheet("文字の調整", `
-    <label class="sheet-row">サイズ<input id="size" type="range" min="24" max="240" value="${layer.size}"></label>
+    <label class="sheet-row">サイズ<input id="size" type="range" min="${MIN_LAYER_SIZE}" max="${MAX_LAYER_SIZE}" value="${layer.size}"></label>
     <label class="sheet-row">角度<input id="angle" type="range" min="-180" max="180" value="${layer.angle * 180 / Math.PI}"></label>
     <div class="dialog-actions"><button id="delete-layer" class="sheet-button">削除</button><button id="edit-layer" class="pill">文字を編集</button></div>`);
   $("#size").oninput = event => { layer.size = Number(event.target.value); changed(); };
@@ -277,20 +279,21 @@ $("#adjust").onclick = () => {
   };
   $("#edit-layer").onclick = () => { $("#sheet").close(); openEditor(layer); };
 };
-$("#stickers").onclick = () => {
-  const emojis = ["😊", "🥺", "😂", "🥰", "🤔", "❤️", "✨", "🌸", "🌙", "☀️", "🔥", "🎉", "🐈", "☕", "🍮"];
-  showSheet("絵文字", `<div class="emoji-grid">${emojis.map(emoji => `<button aria-label="${emoji}">${emoji}</button>`).join("")}</div>`);
-  document.querySelectorAll(".emoji-grid button").forEach(button => {
-    button.onclick = () => {
-      checkpoint();
-      const layer = createLayer(button.textContent);
-      layer.size = 170;
-      state.layers.push(layer);
-      selected = layer.id;
-      changed();
-      $("#sheet").close();
-    };
-  });
+$("#stickers").onclick = async () => {
+  try {
+    const { openEmojiPicker } = await import("./emoji-picker.mjs");
+    await openEmojiPicker({ dialog: $("#sheet"), onSelect: emoji => {
+        checkpoint();
+        const layer = createLayer(emoji);
+        layer.size = 170;
+        state.layers.push(layer);
+        selected = layer.id;
+        changed();
+      },
+    });
+  } catch {
+    notice("絵文字を開けませんでした。もう一度お試しください。");
+  }
 };
 $("#help").onclick = () => showSheet("使い方", `
   <ul><li>画面をタップ、または「Aa」で文字を追加。</li><li>文字をタップして再編集。ドラッグで移動。</li><li>2本指で広げてサイズ変更、ひねって回転。</li><li>文字を下のゴミ箱に運ぶと削除。上の矢印で元に戻せます。</li><li>パソコンでは文字を選び、矢印キーで移動。調整ボタンからサイズ・角度を変更できます。</li></ul>
@@ -391,7 +394,7 @@ canvas.onpointermove = event => {
   const layer = drag.layer;
   if (pointers.size === 2 && drag.pair) {
     const pair = pairGeometry();
-    layer.size = Math.max(24, Math.min(240, drag.original.size * pair.distance / Math.max(1, drag.pair.distance)));
+    layer.size = Math.max(MIN_LAYER_SIZE, Math.min(MAX_LAYER_SIZE, drag.original.size * pair.distance / Math.max(1, drag.pair.distance)));
     layer.angle = drag.original.angle + pair.angle - drag.pair.angle;
     layer.x = Math.max(0, Math.min(WIDTH, drag.original.x + pair.x - drag.pair.x));
     layer.y = Math.max(0, Math.min(HEIGHT, drag.original.y + pair.y - drag.pair.y));

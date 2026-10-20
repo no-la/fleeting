@@ -14,6 +14,19 @@ Twitter Fleets の編集画面を参考にした、スマートフォン向け�
 6. 右上の **保存** で 1080 × 1920 の PNG をダウンロードします。
 
 パソコンでは、文字を選んで矢印キーで移動できます。調整ボタンからサイズ・角度も変更できます。
+文字・絵文字のサイズは24〜1920で、スライダーとピンチ操作の両方から変更できます。大きくしたノードは画面外にはみ出して配置できます。
+
+## 絵文字
+
+Unicode Emoji 18.0 の `emoji-test.txt` から、fully-qualified と component の全3,972件を収録しています。日本語・英語・絵文字で検索でき、10カテゴリと肌色で絞り込めます。肌色の組み合わせ、国旗、家族・職業などの結合絵文字も選択可能です。「もっと表示」で続きの候補を表示します。検索は未表示の候補も含む全件が対象です。
+
+データはこのサイトに同梱し、ピッカーを開いたときだけ読み込みます。日本語名とキーワードには Unicode CLDR を使用しています。端末が未対応の新しい絵文字は、四角や分かれた文字で表示されることがあります。
+
+- [Unicode Emoji データ](https://www.unicode.org/Public/emoji/latest/emoji-test.txt)
+- [Unicode CLDR 日本語注釈](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-annotations-full/annotations/ja)
+- [同梱データのライセンス](data/UNICODE-LICENSE.txt)
+
+取得元とSHA-256は `data/emoji.json` に記録しています。データを更新する場合は `scripts/build-emoji-data.py` に記載の4ファイルを取得し、`python3 scripts/build-emoji-data.py <取得先ディレクトリ>` を実行します。
 
 ## 範囲とデータ
 
@@ -43,8 +56,10 @@ http://127.0.0.1:8765 を開きます。`main` ブランチのルートを GitHu
 
 構文確認：`node --check app.js`
 
+絵文字データ・検索・絞り込みのテスト：`node --test tests/emoji-picker.test.mjs`
+
 ブラウザで直接入力・装飾・複数レイヤー・ドラッグ・2点タッチによる拡大縮小と回転・削除と取り消し・写真読み込み・下書き復元・PNG書き出しを検証しています。モバイル寸法とキーボード相当の縮小ビューポートを含みますが、実機 iOS / Android でのキーボード・カメラ確認は未実施です。
 
 ## License
 
-MIT
+コードはMIT。Unicode / CLDRデータは [Unicode License V3](data/UNICODE-LICENSE.txt) です。
