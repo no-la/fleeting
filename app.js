@@ -467,18 +467,60 @@ $("#undo").onclick = async () => {
   changed();
   notice("元に戻しました");
 };
+let exportFile = null, exportUrl = null, exportRequest = 0;
+function manualSaveHint() {
+  return matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
+    ? "画像を長押しして保存できます。"
+    : "画像を右クリックして保存できます。";
+}
 $("#export").onclick = () => {
+  const request = ++exportRequest;
   draw(true);
+  $("#save-message").textContent = "画像を準備しています…";
+  $("#save-preview").hidden = $("#share-image").hidden = $("#download-image").hidden = true;
+  $("#save-dialog").showModal();
   canvas.toBlob(blob => {
-    if (!blob) { notice("画像の保存に失敗しました。"); return; }
-    const url = URL.createObjectURL(blob), anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `fleeting-${new Date().toISOString().slice(0, 10)}.png`;
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-    notice("画像を書き出しました");
+    if (!$("#save-dialog").open || request !== exportRequest) return;
+    if (!blob) { $("#save-message").textContent = "画像を作れませんでした。もう一度お試しください。"; return; }
+    exportFile = new File([blob], `fleeting-${new Date().toISOString().slice(0, 10)}.png`, { type: "image/png" });
+    exportUrl = URL.createObjectURL(blob);
+    $("#save-preview").src = exportUrl;
+    $("#save-preview").hidden = $("#download-image").hidden = false;
+    let canShare = false;
+    try { canShare = Boolean(navigator.share && navigator.canShare?.({ files: [exportFile] })); } catch {}
+    $("#share-image").hidden = !canShare;
+    $("#save-message").textContent = canShare
+      ? "「保存・共有」から共有メニューを開けます。iPhoneでは「画像を保存」を選んでください。"
+      : manualSaveHint();
   }, "image/png");
 };
+$("#share-image").onclick = async () => {
+  if (!exportFile) return;
+  const button = $("#share-image");
+  button.disabled = true;
+  try {
+    // The File is ready before this tap, preserving Safari's user activation.
+    await navigator.share({ files: [exportFile] });
+  } catch (error) {
+    if (error.name !== "AbortError") $("#save-message").textContent = `共有メニューを開けませんでした。${manualSaveHint()}`;
+  } finally {
+    button.disabled = false;
+  }
+};
+$("#download-image").onclick = () => {
+  if (!exportFile || !exportUrl) return;
+  const anchor = document.createElement("a");
+  anchor.href = exportUrl;
+  anchor.download = exportFile.name;
+  anchor.click();
+};
+$("#close-save").onclick = () => $("#save-dialog").close();
+$("#save-dialog").addEventListener("close", () => {
+  exportRequest++;
+  $("#save-preview").removeAttribute("src");
+  if (exportUrl) URL.revokeObjectURL(exportUrl);
+  exportUrl = exportFile = null;
+});
 $("#reset").onclick = () => $("#reset-dialog").showModal();
 $("#cancel-reset").onclick = () => $("#reset-dialog").close();
 $("#confirm-reset").onclick = () => {

@@ -7,7 +7,7 @@
   <meta name="description" content="写真・文字・絵文字を並べて画像を作る、フリート風のエディタ。">
   <title>fleeting — フリートエディタ</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231da1f2'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-family='sans-serif' font-size='46' font-weight='bold' fill='white'%3Ef%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <main id="app" aria-label="フリートエディタ">
@@ -47,5 +47,12 @@
 </main>
 <dialog id="sheet"><div class="sheet-heading"><h2 id="sheet-title"></h2><button id="close-sheet" class="icon" aria-label="閉じる">×</button></div><div id="sheet-content"></div></dialog>
 <dialog id="reset-dialog"><h2>作り直しますか？</h2><p>今の下書きは削除されます。</p><div class="dialog-actions"><button id="cancel-reset">キャンセル</button><button id="confirm-reset" class="pill">作り直す</button></div></dialog>
-<script src="app.js?v=5" defer></script>
+<dialog id="save-dialog">
+  <div class="sheet-heading"><h2>画像を保存</h2><button id="close-save" class="icon" aria-label="閉じる">×</button></div>
+  <p id="save-message" role="status">画像を準備しています…</p>
+  <img id="save-preview" alt="保存する画像" hidden>
+  <button id="share-image" class="pill" hidden>保存・共有</button>
+  <button id="download-image" class="sheet-button" hidden>ファイルとして保存</button>
+</dialog>
+<script src="app.js?v=6" defer></script>
 </body></html>
