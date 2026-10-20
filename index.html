@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#000000">
-  <meta name="description" content="フリートの編集体験を、もう一度。文字や写真を自由に配置して、一枚の画像に。">
+  <meta name="description" content="写真・文字・絵文字を並べて画像を作る、フリート風のエディタ。">
   <title>fleeting — フリートエディタ</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231da1f2'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-family='sans-serif' font-size='46' font-weight='bold' fill='white'%3Ef%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css?v=4">
@@ -19,33 +19,33 @@
     </header>
     <button id="placeholder" hidden>いまだけ伝えたいことは？</button>
     <div id="text-editor" hidden><textarea id="words" aria-label="テキストを入力" maxlength="1000" spellcheck="false" placeholder="テキストを入力"></textarea></div>
-    <span id="gesture-hint" hidden>ドラッグで移動 · 2本指でサイズと角度</span>
+    <span id="gesture-hint" hidden>ドラッグで移動・2本指で拡大や回転</span>
   </section>
   <div id="controls">
     <div id="compose-tools" class="toolbar">
       <button id="background" class="icon" aria-label="背景色を変更"><span class="background-dot"></span></button>
       <button id="add-text" class="icon text-icon" aria-label="テキストを追加">Aa</button>
       <button id="stickers" class="icon" aria-label="絵文字を追加"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14c2 3 6 3 8 0M8 8v2m8-2v2"/></svg></button>
-      <button id="adjust" class="icon" aria-label="選択した文字のサイズ・角度" disabled><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button>
+      <button id="adjust" class="icon" aria-label="サイズ・角度を調整" disabled><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button>
       <button id="help" class="icon help" aria-label="使い方">?</button>
     </div>
     <div id="edit-tools" class="toolbar" hidden>
       <button id="align" class="icon" aria-label="文字揃え：中央"><svg viewBox="0 0 24 24"><path d="M4 5h16M7 10h10M4 15h16M7 20h10"/></svg></button>
       <button id="bold" class="icon" aria-label="太字" aria-pressed="false"><b>B</b></button>
-      <button id="highlight" class="icon" aria-label="文字背景" aria-pressed="false"><span class="highlight-icon">A</span></button>
-      <button id="text-color" class="icon" aria-label="文字・文字背景の色"><span class="rainbow"></span></button>
-      <button id="cancel-edit" class="small">取消</button>
+      <button id="highlight" class="icon" aria-label="文字の背景" aria-pressed="false"><span class="highlight-icon">A</span></button>
+      <button id="text-color" class="icon" aria-label="文字や背景の色"><span class="rainbow"></span></button>
+      <button id="cancel-edit" class="small">キャンセル</button>
       <button id="done" class="pill">完了</button>
     </div>
     <div id="color-strip" class="swatches" hidden aria-label="文字の色"></div>
     <nav id="modes" aria-label="素材の選択"><button id="text-mode" class="mode" aria-current="true">テキスト</button><button id="photo-mode" class="mode">カメラロール</button><button id="camera-mode" class="mode">撮影</button></nav>
-    <div id="trash" hidden aria-label="ここにドラッグして削除"><svg viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg><span>ここにドロップして削除</span></div>
+    <div id="trash" hidden aria-label="ここにドラッグして削除"><svg viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg><span>ここで指を離すと削除</span></div>
   </div>
   <input id="photo" type="file" accept="image/*" hidden>
   <input id="camera" type="file" accept="image/*" capture="environment" hidden>
   <div id="status" role="status" aria-live="polite"></div>
 </main>
 <dialog id="sheet"><div class="sheet-heading"><h2 id="sheet-title"></h2><button id="close-sheet" class="icon" aria-label="閉じる">×</button></div><div id="sheet-content"></div></dialog>
-<dialog id="reset-dialog"><h2>新しく作りますか？</h2><p>いまの下書きは消えます。残したい場合は、先に画像を保存してください。</p><div class="dialog-actions"><button id="cancel-reset">戻る</button><button id="confirm-reset" class="pill">新しく作る</button></div></dialog>
-<script src="app.js?v=4" defer></script>
+<dialog id="reset-dialog"><h2>作り直しますか？</h2><p>今の下書きは削除されます。</p><div class="dialog-actions"><button id="cancel-reset">キャンセル</button><button id="confirm-reset" class="pill">作り直す</button></div></dialog>
+<script src="app.js?v=5" defer></script>
 </body></html>

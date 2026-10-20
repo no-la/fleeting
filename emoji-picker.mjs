@@ -70,7 +70,7 @@ export async function openEmojiPicker({ dialog, onSelect }) {
       <button id="retry-emoji" class="sheet-button" hidden>再読み込み</button>
       <div id="emoji-sentinel" aria-hidden="true"></div>
     </div>
-    <p class="emoji-note">長押しで肌の色を選択 · 日本語や英語でも検索できます</p>`;
+    <p class="emoji-note">長押しで肌の色を変更</p>`;
   const find = selector => content.querySelector(selector);
   const search = find("#emoji-search"), grid = find(".emoji-grid"), results = find("#emoji-results");
   let observer, holdTimer, closed = false;
@@ -179,7 +179,7 @@ export async function openEmojiPicker({ dialog, onSelect }) {
     grid.replaceChildren();
     results.scrollTop = 0;
     find("#emoji-empty").hidden = Boolean(matches.length);
-    find("#emoji-empty").textContent = "見つかりませんでした。別の言葉で検索してみてください。";
+    find("#emoji-empty").textContent = "見つかりませんでした。別の言葉で検索してください。";
     find("#emoji-count").textContent = `${matches.length.toLocaleString("ja-JP")}件`;
     appendPage(restore ? Math.max(PAGE_SIZE, previousShown) : PAGE_SIZE);
     if (restore) results.scrollTop = previousScroll;

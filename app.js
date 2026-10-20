@@ -244,8 +244,8 @@ function showSheet(title, html) {
 $("#close-sheet").onclick = () => $("#sheet").close();
 $("#background").onclick = () => {
   showSheet("背景", `<div class="palette-grid">${backgrounds.map((p, i) => `<button data-background="${i}" aria-label="${p[0]}" aria-pressed="${state.background === i}" style="background:linear-gradient(135deg,${p[1]},${p[2]},${p[3]})"></button>`).join("")}</div>
-    <label class="sheet-row">好きな色<input id="custom" type="color" value="${state.custom}"></label>
-    ${photo ? '<button id="photo-fit" class="sheet-button">写真の全体表示 / 全面表示</button> <button id="remove-photo" class="sheet-button">写真を外す</button>' : ""}`);
+    <label class="sheet-row">その他の色<input id="custom" type="color" value="${state.custom}"></label>
+    ${photo ? `<button id="photo-fit" class="sheet-button">${state.fit === "contain" ? "画面いっぱいに表示" : "写真全体を表示"}</button> <button id="remove-photo" class="sheet-button">写真を外す</button>` : ""}`);
   document.querySelectorAll("[data-background]").forEach(button => {
     button.onclick = () => {
       checkpoint();
@@ -271,7 +271,7 @@ $("#adjust").onclick = () => {
   const layer = currentLayer();
   if (!layer) return;
   checkpoint();
-  showSheet("文字の調整", `
+  showSheet("サイズ・角度", `
     <label class="sheet-row">サイズ<input id="size" type="range" min="${MIN_LAYER_SIZE}" max="${MAX_LAYER_SIZE}" value="${layer.size}"></label>
     <label class="sheet-row">角度<input id="angle" type="range" min="-180" max="180" value="${layer.angle * 180 / Math.PI}"></label>
     <div class="dialog-actions"><button id="delete-layer" class="sheet-button">削除</button><button id="edit-layer" class="pill">文字を編集</button></div>`);
@@ -287,7 +287,7 @@ $("#adjust").onclick = () => {
 };
 $("#stickers").onclick = async () => {
   try {
-    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=2");
+    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=3");
     await openEmojiPicker({ dialog: $("#sheet"), onSelect: emoji => {
         checkpoint();
         const layer = createLayer(emoji);
@@ -298,13 +298,14 @@ $("#stickers").onclick = async () => {
       },
     });
   } catch {
-    notice("絵文字を開けませんでした。もう一度お試しください。");
+    notice("絵文字を読み込めませんでした。もう一度開いてください。");
   }
 };
 $("#help").onclick = () => showSheet("使い方", `
-  <ul><li>画面をタップ、または「Aa」で文字を追加。</li><li>文字をタップして再編集。ドラッグで移動。</li><li>2本指で広げてサイズ変更、ひねって回転。</li><li>文字を下のゴミ箱に運ぶと削除。上の矢印で元に戻せます。</li><li>パソコンでは文字を選び、矢印キーで移動。調整ボタンからサイズ・角度を変更できます。</li></ul>
-  <p>「保存」で1080 × 1920のPNGをダウンロードします。写真と下書きはこのブラウザ内に保存されます。</p>
-  <p>Twitter Fleetsの編集画面を参考にした個人制作です。Twitter / Xの公式サービスではありません。動画・投稿機能はありません。</p>`);
+  <ul><li>画面をタップして文字を入力。「Aa」でも追加できます。</li><li>文字や絵文字はドラッグで移動、タップで編集。</li><li>2本指で大きさや角度を調整。</li><li>消したいものは下のゴミ箱へ。上の矢印で元に戻せます。</li></ul>
+  <p>パソコンでは矢印キーでも移動できます。大きさと角度は調整ボタンから。</p>
+  <p>保存形式はPNG（1080 × 1920）。下書きはこのブラウザに保存されます。</p>
+  <p>Twitterのフリートを参考に作りました。X / Twitterとは関係のない個人制作です。</p>`);
 
 function loadImage(source) {
   return new Promise((resolve, reject) => {
@@ -345,7 +346,7 @@ async function importPhoto(event) {
     photo = normalized;
     photoSource = data;
     changed();
-  } catch { notice("写真を読み込めません。JPEGやPNGをお試しください。"); }
+  } catch { notice("写真を読み込めませんでした。JPEGかPNGを選んでください。"); }
   finally { URL.revokeObjectURL(source); event.target.value = ""; }
 }
 $("#photo-mode").onclick = () => $("#photo").click();
@@ -475,7 +476,7 @@ $("#export").onclick = () => {
     anchor.download = `fleeting-${new Date().toISOString().slice(0, 10)}.png`;
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    notice("画像をダウンロードしました");
+    notice("画像を書き出しました");
   }, "image/png");
 };
 $("#reset").onclick = () => $("#reset-dialog").showModal();
