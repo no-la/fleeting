@@ -1,5 +1,5 @@
 "use strict";
-import { emojiAsset, emojiImage, prepareEmoji } from "./emoji-art.mjs";
+import { isEmoji, emojiImage } from "./emoji-art.mjs?v=2";
 
 const $ = selector => document.querySelector(selector);
 const canvas = $("#canvas"), ctx = canvas.getContext("2d");
@@ -113,7 +113,7 @@ function renderLayer(layer) {
     ctx.fillStyle = layer.highlight ? contrast(layer.color) : layer.color;
     const runs = [];
     for (const { segment } of graphemes.segment(line)) {
-      if (emojiAsset(segment)) runs.push({ text: segment, emoji: true });
+      if (isEmoji(segment)) runs.push({ text: segment, emoji: true });
       else if (runs.length && !runs.at(-1).emoji) runs.at(-1).text += segment;
       else runs.push({ text: segment, emoji: false });
     }
@@ -122,8 +122,13 @@ function renderLayer(layer) {
     ctx.textAlign = "left";
     for (const run of runs) {
       const advance = ctx.measureText(run.text).width;
-      const image = run.emoji && emojiImage(run.text, () => draw());
-      if (image) ctx.drawImage(image, left + (advance - box.size) / 2, y - box.size / 2, box.size, box.size);
+      const image = run.emoji && box.size > 160 && emojiImage(run.text);
+      if (image) {
+        const scale = box.size / image.size;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image.canvas, left + image.x * scale, y + image.y * scale, image.canvas.width * scale, image.canvas.height * scale);
+      }
       else ctx.fillText(run.text, left, y);
       left += advance;
     }
@@ -303,7 +308,7 @@ $("#adjust").onclick = () => {
 };
 $("#stickers").onclick = async () => {
   try {
-    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=4");
+    const { openEmojiPicker } = await import("./emoji-picker.mjs?v=5");
     await openEmojiPicker({ dialog: $("#sheet"), onSelect: emoji => {
         checkpoint();
         const layer = createLayer(emoji);
@@ -321,8 +326,7 @@ $("#help").onclick = () => showSheet("使い方", `
   <ul><li>画面をタップして文字を入力。「Aa」でも追加できます。</li><li>文字や絵文字はドラッグで移動、タップで編集。</li><li>2本指で大きさや角度を調整。</li><li>消したいものは下のゴミ箱へ。上の矢印で元に戻せます。</li></ul>
   <p>パソコンでは矢印キーでも移動できます。大きさと角度は調整ボタンから。</p>
   <p>保存形式はPNG（1080 × 1920）。下書きはこのブラウザに保存されます。</p>
-  <p>Twitterのフリートを参考に作りました。X / Twitterとは関係のない個人制作です。</p>
-  <p>絵文字：<a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a>（Twitterほか、<a href="assets/twemoji/LICENSE" target="_blank" rel="noopener">CC BY 4.0</a>）。素材は未改変です。</p>`);
+  <p>Twitterのフリートを参考に作りました。X / Twitterとは関係のない個人制作です。</p>`);
 
 function loadImage(source) {
   return new Promise((resolve, reject) => {
@@ -490,13 +494,11 @@ function manualSaveHint() {
     ? "画像を長押しして保存"
     : "画像を右クリックして保存";
 }
-$("#export").onclick = async () => {
+$("#export").onclick = () => {
   const request = ++exportRequest;
   $("#save-message").textContent = "準備中…";
   $("#save-preview").hidden = $("#share-image").hidden = $("#download-image").hidden = true;
   $("#save-dialog").showModal();
-  await prepareEmoji(state.layers.map(layer => layer.text).join("\n"));
-  if (!$("#save-dialog").open || request !== exportRequest) return;
   draw(true);
   canvas.toBlob(blob => {
     if (!$("#save-dialog").open || request !== exportRequest) return;

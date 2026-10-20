@@ -22,7 +22,7 @@ Unicode Emoji 18.0 の `emoji-test.txt` から、fully-qualified と component �
 
 肌色違いは1つにまとめ、長押しまたは右下の三角ボタンで選べます。複数人の肌色の組み合わせ、国旗、家族・職業などの結合絵文字も選択可能です。
 
-データはこのサイトに同梱し、ピッカーを開いたときだけ読み込みます。日本語名とキーワードには Unicode CLDR を使用しています。一覧とキャンバスではTwemoji v17.0.3のSVGを使用し、拡大時にも輪郭を保ちます。Twemojiにない新しい絵文字は端末の表示に戻すため、四角や分かれた文字になる場合があります。入力欄では端末の絵文字が表示されます。
+データはこのサイトに同梱し、ピッカーを開いたときだけ読み込みます。日本語名とキーワードには Unicode CLDR を使用しています。一覧・入力欄・キャンバスは端末の絵文字を使います。大きな絵文字は160pxで一度描画し、高品質補間で拡大して輪郭のザラつきを抑えます。元画像の細部を増やす処理ではありません。端末が未対応の絵文字は、四角や分かれた文字になる場合があります。
 
 - [Unicode Emoji データ](https://www.unicode.org/Public/emoji/latest/emoji-test.txt)
 - [Unicode CLDR 日本語注釈](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-annotations-full/annotations/ja)
@@ -58,7 +58,7 @@ http://127.0.0.1:8765 を開きます。`main` ブランチのルートを GitHu
 
 構文確認：`node --check app.js`
 
-絵文字データ・検索・SVG対応のテスト：`node --test tests/*.test.mjs`
+絵文字データ・検索・絵文字判定のテスト：`node --test tests/*.test.mjs`
 
 中央の案内文は新規キャンバスだけに表示し、編集開始後は空に戻しても再表示しません。「新しく作る」でリセットすると再び表示します。
 
@@ -66,10 +66,8 @@ http://127.0.0.1:8765 を開きます。`main` ブランチのルートを GitHu
 
 保存・共有は Web Share API の対応状況で切り替えます。共有ボタンを押す前にPNGファイルを作り、ユーザー操作直後に共有APIを呼び出します。APIへのファイル受け渡し・キャンセル・非対応時のプレビュー・任意のダウンロードをブラウザで検証しています。iPhone実機の共有メニューおよび写真アプリへの保存は未確認です。
 
-保存画面は375×568および568×320のビューポートでスクロールが発生しないこと、枠外タップで閉じることを確認しています。Twemojiは一覧・拡大配置・PNG出力を確認済みです。
+保存画面は375×568および568×320のビューポートでスクロールが発生しないこと、枠外タップで閉じることを確認しています。端末の絵文字はMacのChromiumで一覧・拡大配置・PNG出力を確認しています。iPhone実機での拡大品質は未確認です。
 
 ## License
 
 コードはMIT。Unicode / CLDRデータは [Unicode License V3](data/UNICODE-LICENSE.txt) です。
-
-絵文字画像は [Twemoji v17.0.3](https://github.com/jdecked/twemoji/releases/tag/v17.0.3)、Copyright Twitter, Inc. and other contributors。[CC BY 4.0](assets/twemoji/LICENSE) に従い、SVGを未改変で同梱しています。

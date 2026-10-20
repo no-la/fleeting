@@ -1,39 +1,34 @@
-import { assets } from "./emoji-assets.mjs";
-
+// Rasterize native emoji at a moderate size before smooth enlargement.
+const RASTER_SIZE = 160;
+const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 const cache = new Map();
 const segments = new Intl.Segmenter("ja", { granularity: "grapheme" });
 
-export function emojiAsset(text) {
-  // Preserve explicit text presentation and ordinary numbers/punctuation.
-  if (text.includes("\ufe0e")) return null;
-  const code = [...text].map(char => char.codePointAt(0).toString(16)).join("-");
-  const key = assets.has(code) ? code : code.replace(/-fe0f/g, "");
-  return assets.has(key) ? new URL(`./assets/twemoji/${key}.svg`, import.meta.url).href : null;
+export function isEmoji(text) {
+  if (text.includes("\ufe0e") || [...segments.segment(text)].length !== 1) return false;
+  return /[\p{Extended_Pictographic}\p{Regional_Indicator}\p{Emoji_Modifier}\u20e3]/u.test(text);
 }
 
-export function emojiImage(text, onLoad) {
-  const url = emojiAsset(text);
-  if (!url) return null;
-  if (!cache.has(url)) {
-    const image = new Image();
-    const entry = { image: null, ready: null };
-    entry.ready = new Promise(resolve => {
-      image.onload = () => { entry.image = image; resolve(); onLoad?.(); };
-      image.onerror = () => resolve();
-    });
-    cache.set(url, entry);
-    image.src = url;
+export function emojiImage(text) {
+  if (!isEmoji(text)) return null;
+  if (!cache.has(text)) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const configure = () => {
+      ctx.font = RASTER_SIZE + "px " + EMOJI_FONT;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+    };
+    configure();
+    const metrics = ctx.measureText(text);
+    const left = Math.ceil(metrics.actualBoundingBoxLeft) + 2;
+    const top = Math.ceil(metrics.actualBoundingBoxAscent) + 2;
+    canvas.width = Math.max(1, left + Math.ceil(metrics.actualBoundingBoxRight) + 2);
+    canvas.height = Math.max(1, top + Math.ceil(metrics.actualBoundingBoxDescent) + 2);
+    configure();
+    ctx.fillText(text, left, top);
+    if (cache.size >= 128) cache.delete(cache.keys().next().value);
+    cache.set(text, { canvas, x: -left, y: -top, size: RASTER_SIZE });
   }
-  return cache.get(url).image;
-}
-
-export async function prepareEmoji(text) {
-  const pending = [];
-  for (const { segment } of segments.segment(text)) {
-    const url = emojiAsset(segment);
-    if (!url) continue;
-    emojiImage(segment);
-    pending.push(cache.get(url).ready);
-  }
-  await Promise.all(pending);
+  return cache.get(text);
 }
